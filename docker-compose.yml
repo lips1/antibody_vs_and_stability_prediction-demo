@@ -1,0 +1,28 @@
+
+version: "3.9"
+
+services:
+  api-gateway:
+    build: ./backend/api-gateway
+    ports:
+      - "8000:8000"
+    depends_on:
+      - stability-service
+      - viscosity-service
+
+  stability-service:
+    build: ./backend/stability-service
+    ports:
+      - "8002:8002"
+
+  viscosity-service:
+    build: ./backend/viscosity-service
+    ports:
+      - "8003:8003"
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api-gateway

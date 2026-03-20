@@ -1,0 +1,55 @@
+# Node dependencies
+node_modules/
+frontend/node_modules/
+npm-debug.log
+yarn-error.log
+
+# Python
+**/__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+.venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Environment
+.env
+.env.local
+
+# Docker
+.dockerignore
+.container-*
+
+# Large model files (already in DeepViscosity/ and deepStabP/)
+# Keep the models in repo but ignore build artifacts
+*.h5
+*.json
+# Except the model JSONs for DeepViscosity
+!DeepViscosity/**/*.json
+!DeepViscosity/**/*.h5
+!deepStabP/**/*.json
+!deepStabP/**/*.h5
+
+# Data logs
+*.log
+*.pot
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# OS
+Thumbs.db
+.DS_Store
