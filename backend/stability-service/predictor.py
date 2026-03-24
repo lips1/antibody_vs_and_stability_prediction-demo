@@ -34,14 +34,14 @@ class StabilityPredictor:
                 cache_dir="/tmp/hf_cache"
             )
             self.model.eval()
-            logger.info("✓ deepStabP model loaded successfully - using T5 embeddings for stability prediction")
+            logger.info(" deepStabP model loaded successfully - using T5 embeddings for stability prediction")
                 
         except Exception as e:
             logger.error(f"Error loading deepStabP model: {e}. Will use simple predictions.")
             self.model = None
             self.tokenizer = None
 
-    def predict(self, heavy_chain: str, light_chain: str = None):
+    def predict(self, sequence: str):
         """Predict stability (Tm) for a protein sequence using deepStabP T5 encoder model"""
         import torch
         
