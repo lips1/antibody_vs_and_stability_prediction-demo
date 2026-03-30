@@ -1,37 +1,36 @@
 
-FROM python:3.10-slim
+FROM python:3.9-slim
 
 WORKDIR /app
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    git \
-    wget \
-    build-essential \
-    && rm -rf /var/lib/apt/lists/*
+# Add CA certificates for HTTPS access (HuggingFace SSL requirements)
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates && rm -rf /var/lib/apt/lists/*
 
-# Upgrade pip
-RUN pip install --upgrade pip setuptools wheel
-
-# Install PyTorch first (CPU version, compatible with transformers)
-RUN pip install --no-cache-dir torch==1.13.0 --index-url https://download.pytorch.org/whl/cpu
-
-# Install deepStabP dependencies (without pytorch-lightning)
+# Install dependencies using deepStabP-compatible pinned versions.
 RUN pip install --no-cache-dir \
-    transformers==4.24.0 \
-    fastapi==0.100.0 \
-    uvicorn[standard]==0.23.0 \
-    requests==2.31.0 \
-    biopython==1.81 \
-    numpy==1.24.3 \
-    pandas==2.0.3
+	"fastapi>=0.68.0,<0.69.0" \
+	"pydantic>=1.8.0,<2.0.0" \
+	"uvicorn>=0.15.0,<0.16.0" \
+	"numpy==1.24.1" \
+	"pandas==1.5.1" \
+	"torch==1.13.0" \
+	"transformers==4.24.0" \
+	"Bio==1.5.3" \
+	"pytorch_lightning==1.7.7" \
+	"torchmetrics==0.10.3" \
+	"requests==2.28.1" \
+	"sentencepiece==0.1.97" \
+	"python-multipart"
 
-# Clone deepStabP repo
-RUN git clone https://github.com/CSBiology/deepStabP.git /app/deepStabP
+ENV HF_HOME=/app/hf_cache
+ENV HF_HUB_DISABLE_SSL_VERIFICATION=1
+ENV SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
+ENV REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
 
-# Copy service code
-COPY predictor.py .
-COPY main.py .
+# deepStabP repo is mounted as volume at runtime
+
+# Copy our service code
+COPY backend/stability-service/main.py /app/
 
 EXPOSE 8002
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8002"]

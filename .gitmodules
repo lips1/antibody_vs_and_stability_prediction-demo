@@ -1,9 +1,0 @@
-[submodule "DeepViscosity"]
-	path = DeepViscosity
-	url = https://github.com/Lailabcode/DeepViscosity.git
-[submodule "deepStabP"]
-	path = deepStabP
-	url = https://github.com/CSBiology/deepStabP.git
-[submodule "frontend"]
-	path = frontend
-	url = ./frontend
