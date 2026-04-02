@@ -53,7 +53,7 @@ def run_deepviscosity(df) -> "pd.DataFrame":
         if "VH" in df_to_write.columns and "VL" in df_to_write.columns:
             df_to_write = df_to_write.rename(columns={"VH": "Heavy_Chain", "VL": "Light_Chain"})
 
-        # ✅ overwrite repo CSV using the expected filename
+      
         df_to_write.to_csv(input_file, index=False)
 
         print("=== INPUT FILE ===")
@@ -68,7 +68,7 @@ def run_deepviscosity(df) -> "pd.DataFrame":
         if import_check.returncode != 0:
             raise RuntimeError("DeepViscosity runtime dependencies check failed")
 
-        # ✅ run original script with same interpreter
+        #  run original  
         result = subprocess.run(
             [sys.executable, "deepviscosity_predictor.py"],
             cwd=DEEPPATH,
@@ -137,7 +137,7 @@ async def upload(file: UploadFile = File(...)):
         raise HTTPException(status_code=400, detail="Upload CSV only")
 
     try:
-        # ✅ read CSV directly
+        # 
         df = pd.read_csv(file.file)
         # Normalize column names: strip whitespace, remove BOM, unify case
         try:
@@ -198,4 +198,4 @@ async def upload(file: UploadFile = File(...)):
         msg = str(e)
         if isinstance(e, RuntimeError) or msg.startswith("DeepViscosity failed") or "missing dependencies" in msg.lower():
             raise HTTPException(status_code=503, detail=msg)
-        raise HTTPException(status_code=500, detail=msg)
+        raise HTTPException(status_code=500, detail=msg) 

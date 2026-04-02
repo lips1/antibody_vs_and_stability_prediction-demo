@@ -1,10 +1,10 @@
 
-FROM python:3.9-slim
+FROM python:3.10-slim-bullseye
 
 WORKDIR /app
 
 # Add CA certificates for HTTPS access (HuggingFace SSL requirements)
-RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates && update-ca-certificates && rm -rf /var/lib/apt/lists/*
 
 # Install dependencies using deepStabP-compatible pinned versions.
 RUN pip install --no-cache-dir \
@@ -20,7 +20,8 @@ RUN pip install --no-cache-dir \
 	"torchmetrics==0.10.3" \
 	"requests==2.28.1" \
 	"sentencepiece==0.1.97" \
-	"python-multipart"
+	"python-multipart" \
+	"accelerate>=0.20.0"
 
 ENV HF_HOME=/app/hf_cache
 ENV HF_HUB_DISABLE_SSL_VERIFICATION=1
@@ -30,7 +31,7 @@ ENV REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
 # deepStabP repo is mounted as volume at runtime
 
 # Copy our service code
-COPY backend/stability-service/main.py /app/
+COPY main.py /app/
 
 EXPOSE 8002
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8002"]

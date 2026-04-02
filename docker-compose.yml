@@ -4,8 +4,7 @@ version: "3.9"
 services:
   api-gateway:
     build:
-      context: .
-      dockerfile: backend/api-gateway/Dockerfile
+      context: ./backend/api-gateway
     image: api-gateway
     ports:
       - "8000:8000"
@@ -15,13 +14,13 @@ services:
 
   stability-service:
     build:
-      context: .
-      dockerfile: backend/stability-service/Dockerfile
+      context: ./backend/stability-service
     image: stability-service
     ports:
       - "8002:8002"
     environment:
-      - DEEPSTABP_MODEL_REF=Rostlab/prot_t5_xl_uniref50
+      - DEEPSTABP_API_PATH=/app/deepStabP/src/Api
+      - DEEPSTABP_MODEL_REF=/app/deepStabP/models/Rostlab/prot_t5_xl_uniref50
     volumes:
       - ./deepStabP:/app/deepStabP:ro
       - stability_hf_cache:/app/hf_cache
@@ -32,8 +31,10 @@ services:
     image: viscosity-service
     ports:
       - "8003:8003"
+    environment:
+      - DEEPPATH=/app/DeepViscosity
     volumes:
-      - ./DeepViscosity:/app/DeepViscosity:ro
+      - ./DeepViscosity:/app/DeepViscosity
 
   frontend:
     build:

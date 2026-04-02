@@ -1,4 +1,4 @@
-FROM python:3.10-slim
+FROM python:3.10-slim-bullseye
 
 WORKDIR /app
 
@@ -32,8 +32,8 @@ RUN pip install --no-cache-dir anarci && \
     if [ -n "$ANARCI_BIN" ]; then ln -sf "$ANARCI_BIN" /usr/local/bin/ANARCI; fi && \
     command -v ANARCI || true
 
-# Clone original DeepViscosity repo as-is
-RUN git clone https://github.com/Lailabcode/DeepViscosity.git /app/DeepViscosity
+# DeepViscosity files are provided via volume mount at runtime (./DeepViscosity:/app/DeepViscosity)
+RUN mkdir -p /app/DeepViscosity
 
 # Copy only FastAPI service code
 COPY main.py .
