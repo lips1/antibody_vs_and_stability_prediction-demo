@@ -14,7 +14,7 @@ default_deeppath = os.path.abspath(
 )
 DEEPPATH = os.environ.get("DEEPPATH", default_deeppath)
 
-# Check predictor deps once at startup
+# Check predictor 
 _predictor_ready = False
 try:
     import joblib  # noqa: F401
@@ -34,7 +34,7 @@ class SequenceRequest(BaseModel):
 
 
 # -----------------------------
-# RUN MODEL
+# RUN MODEL FROM CLONEPROJECT
 # -----------------------------
 def run_deepviscosity(df) -> "pd.DataFrame":
     try:
@@ -56,17 +56,17 @@ def run_deepviscosity(df) -> "pd.DataFrame":
       
         df_to_write.to_csv(input_file, index=False)
 
-        print("=== INPUT FILE ===")
-        print(open(input_file).read())
+        # print("=== INPUT FILE ===")
+        # print(open(input_file).read())
 
-        # verify the interpreter used for the subprocess can import required packages
-        import_check = subprocess.run(
-            [sys.executable, "-c", "import joblib, tensorflow, anarci"],
-            capture_output=True,
-            text=True
-        )
-        if import_check.returncode != 0:
-            raise RuntimeError("DeepViscosity runtime dependencies check failed")
+       
+        # import_check = subprocess.run(
+        #     [sys.executable, "-c", "import joblib, tensorflow, anarci"],
+        #     capture_output=True,
+        #     text=True
+        # )
+        # if import_check.returncode != 0:
+        #     raise RuntimeError("DeepViscosity runtime dependencies check failed")
 
         #  run original  
         result = subprocess.run(
@@ -76,8 +76,8 @@ def run_deepviscosity(df) -> "pd.DataFrame":
             text=True
         )
 
-        print("STDOUT:", result.stdout)
-        print("STDERR:", result.stderr)
+        # print("STDOUT:", result.stdout)
+        # print("STDERR:", result.stderr)
 
         if result.returncode != 0:
             raise RuntimeError(f"DeepViscosity predictor failed: {result.stderr.strip() or result.stdout.strip()}")
@@ -102,14 +102,14 @@ def run_deepviscosity(df) -> "pd.DataFrame":
 @app.post("/predict")
 def predict(req: SequenceRequest):
     try:
-        # ✅ FIX: correct columns
+        
         df = pd.DataFrame([{
             "Name": req.name,
             "VH": req.heavy_chain,
             "VL": req.light_chain
         }])
 
-        # ✅ FIX: pass df (NOT temp file)
+       
         result_df = run_deepviscosity(df)
 
         return {
@@ -159,7 +159,7 @@ async def upload(file: UploadFile = File(...)):
         except Exception:
             pass
 
-        # ✅ validate columns: accept either VH/VL or Heavy_Chain/Light_Chain (case-insensitive)
+        # validation
         cols = {c for c in df.columns}
         lower_map = {str(c).lower(): c for c in df.columns}
         has_vhvl = {"name", "vh", "vl"}.issubset(set(k.lower() for k in df.columns))

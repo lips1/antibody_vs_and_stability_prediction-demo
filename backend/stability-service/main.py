@@ -7,10 +7,6 @@ import pandas as pd
 import io
 import os
 import sys
-
-# Change working dir to deepStabP Api root BEFORE importing the module so that
-# the relative checkpoint path ("trained_model/...") inside version1.py resolves
-# correctly.  The env var lets us override the path in docker-compose.
 _api_dir = os.environ.get("DEEPSTABP_API_PATH", "/app/deepStabP/src/Api")
 os.chdir(_api_dir)
 if _api_dir not in sys.path:
@@ -50,31 +46,77 @@ def predict(data: Input):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.post("/upload")
-async def upload(file: UploadFile = File(...)):
-    if not file.filename.endswith(".csv"):
-        raise HTTPException(status_code=400, detail="Only CSV files are supported.")
-    try:
-        df = pd.read_csv(file.file)
-        results = []
-        for _, row in df.iterrows():
-            seq = row["Heavy_Chain"]
-            records = [v1.FastaRecord(header=row["Name"], sequence=" ".join(list(seq.upper())))]
-            out = v1.determine_tm(
-                records,
-                "Cell",
-                37,
-                v1.model,
-                v1.prediction_net,
-                v1.new_features,
-                v1.tokenizer,
-            )
-            results.append({"Name": row["Name"], "Stability": float(out["Tm"].iloc[0])})
-        merged_csv = pd.DataFrame(results).to_csv(index=False)
-        return Response(
-            content=merged_csv,
-            media_type="text/csv",
-            headers={"Content-Disposition": f"attachment; filename=stability_results.csv"},
+# @app.post("/upload")
+# async def upload(file: UploadFile = File(...)):
+#     if not file.filename.endswith(".csv"):
+#         raise HTTPException(status_code=400, detail="Only CSV files are supported.")
+#     try:
+#         df = pd.read_csv(file.file)
+#         results = []
+#         for _, row in df.iterrows():
+#             seq = row["Heavy_Chain"]
+#             records = [v1.FastaRecord(header=row["Name"], sequence=" ".join(list(seq.upper())))]
+#             out = v1.determine_tm(
+#                 records,
+#                 "Cell",
+#                 37,
+#                 v1.model,
+#                 v1.prediction_net,
+#                 v1.new_features,
+#                 v1.tokenizer,
+#             )
+#             results.append({"Name": row["Name"], "Stability": float(out["Tm"].iloc[0])})
+#         merged_csv = pd.DataFrame(results).to_csv(index=False)
+#         return Response(
+#             content=merged_csv,
+#             media_type="text/csv",
+#             headers={"Content-Disposition": f"attachment; filename=stability_results.csv"},
+#         )
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=str(e))
+    required = {"Name", "Heavy_Chain"}
+    if not required.issubset(df.columns):
+        raise HTTPException(
+            status_code=400,
+            detail="CSV must contain Name and Heavy_Chain columns."
         )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+
+    if df.empty:
+        raise HTTPException(status_code=400, detail="CSV is empty.")
+
+    records = []
+    for _, row in df.iterrows():
+        name = str(row["Name"])
+        seq = str(row["Heavy_Chain"]).replace(" ", "").upper()
+        records.append(
+            v1.FastaRecord(
+                header=name,
+                sequence=" ".join(list(seq))
+            )
+        )
+
+    out = v1.determine_tm(
+        records,
+        "Cell",
+        37,
+        v1.model,
+        v1.prediction_net,
+        v1.new_features,
+        v1.tokenizer,
+    )
+
+    results = pd.DataFrame({
+        "Name": df["Name"].astype(str).values,
+        "Stability": out["Tm"].astype(float).values
+    })
+
+    merged_csv = results.to_csv(index=False)
+    return Response(
+        content=merged_csv,
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=stability_results.csv"},
+    )
+except HTTPException:
+    raise
+except Exception as e:
+    raise HTTPException(status_code=500, detail=str(e))
